@@ -1,0 +1,1 @@
+/Users/yutiantian/privateProject/TransformDemo/buildSrc/build/classes/kotlin/main/com/transform/demo/DemoPlugin.class:/Users/yutiantian/privateProject/TransformDemo/buildSrc/build/classes/kotlin/main/com/transform/demo/transform/DemoTransform.class
