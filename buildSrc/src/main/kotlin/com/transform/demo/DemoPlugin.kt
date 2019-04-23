@@ -1,9 +1,7 @@
 package com.transform.demo
 
 import com.android.build.gradle.AppExtension
-import com.android.build.gradle.BaseExtension
-import com.android.build.gradle.internal.transforms.CustomClassTransform
-import com.transform.demo.transform.DemoTransform
+import com.transform.demo.transform.AutoRegisterTransform
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -14,8 +12,8 @@ import org.gradle.api.Project
  */
 class DemoPlugin: Plugin<Project> {
     override fun apply(target: Project) {
-        val android = target.extensions.findByType(AppExtension::class.java)
-        android?.registerTransform(DemoTransform())
-
+        target.extensions.findByType(AppExtension::class.java)?.run {
+            registerTransform(AutoRegisterTransform(target))
+        }
     }
 }

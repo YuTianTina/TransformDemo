@@ -8,11 +8,10 @@ import com.android.build.api.transform.Transform
 import com.android.build.api.transform.TransformInvocation
 import com.android.build.gradle.internal.pipeline.TransformManager
 import com.android.utils.FileUtils
+import com.transform.demo.utils.ScanCondition
+import com.transform.demo.utils.ScanHelper
 import com.transform.demo.utils.createParent
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.OutputStream
+import java.io.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
@@ -23,11 +22,7 @@ import java.util.zip.ZipOutputStream
  * @author yutiantian email: yutiantina@gmail.com
  * @since 2019/4/9
  */
-abstract class DemoTransform: Transform() {
-    /**
-     * transform 名字
-     */
-    override fun getName(): String = "DemoTransform"
+abstract class DemoTransform : Transform() {
 
     /**
      * 输入文件的类型
@@ -51,6 +46,7 @@ abstract class DemoTransform: Transform() {
      */
     override fun transform(transformInvocation: TransformInvocation) {
         val outputProvider = transformInvocation.outputProvider
+        println("有没有增量编译${transformInvocation.isIncremental}")
         for (input in transformInvocation.inputs){
             with(input){
                 // 输入源为jar
@@ -73,6 +69,7 @@ abstract class DemoTransform: Transform() {
                         transformJar(inputJar, outputJar)
                     }
                 }
+
                 // 输入源为文件夹
                 directoryInputs.forEach {di->
                     val inputDir = di.file
@@ -120,23 +117,20 @@ abstract class DemoTransform: Transform() {
     }
 
     private fun transformJar(inputJar: File, outputJar: File) {
+        ScanHelper.scanFromJarInput(inputJar, outputJar, getScanConditions())
         outputJar.createParent()
-        val zos = ZipOutputStream(FileOutputStream(outputJar))
-        for (entry in ZipFile(inputJar).entries()) {
-            if(!entry.isDirectory && entry.name.endsWith(SdkConstants.DOT_CLASS)){
-                zos.putNextEntry(ZipEntry(entry.name))
-                doFunction(inputJar.inputStream(), zos)
-            }
-        }
+        FileUtils.copyFile(inputJar, outputJar)
+
     }
 
     private fun transformFile(inputFile: File, out: File) {
+        ScanHelper.scanFromDirectoryInput(inputFile, out, getScanConditions())
         out.createParent()
-        doFunction(inputFile.inputStream(), out.outputStream())
+        FileUtils.copyFile(inputFile, out)
     }
 
     /**
-     * 聚焦输入流和输出流的转换处理
+     * 扫描动作
      */
-    abstract fun doFunction(inputStream: FileInputStream, zos: OutputStream)
+    abstract fun getScanConditions(): MutableList<ScanCondition>
 }
